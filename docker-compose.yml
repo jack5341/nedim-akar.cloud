@@ -22,6 +22,7 @@ services:
     labels:
       - "traefik.enable=true"
     networks:
+      - web
       - tracing
 
   whoami:
