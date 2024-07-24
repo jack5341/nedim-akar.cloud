@@ -1,0 +1,99 @@
+api:
+  insecure: true
+  dashboard: true
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    httpClientTimeout: 300
+
+tracing:
+  otlp:
+    http:
+      endpoint: http://jaeger:4318/v1/traces
+
+accessLog:
+  filePath: "/dev/stdout"
+  filters:
+    statusCodes:
+      - "200"
+      - "300-302"
+    retryAttempts: true
+
+log:
+  level: "ERROR"
+  compress: true
+  format: json
+  filePath: "./traefik.log"
+
+entryPoints:
+  websecure:
+    address: ":443"
+    http:
+      tls: true
+    proxyProtocol:
+      insecure: true
+    forwardedHeaders:
+      insecure: true
+  web:
+    http:
+      tls:
+        certResolver: "letsencrypt"
+        domains:
+          - main: "nedim-akar.cloud"
+            sans:
+              - "*.nedim-akar.cloud"
+            options:
+              redirect:
+                entryPoint: "websecure"
+                permanent: true
+      redirections:
+        entryPoint:
+          to: "websecure"
+          scheme: "https"
+    address: ":80"
+    proxyProtocol:
+      insecure: true
+  traefik:
+    address: ":8100"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: nedim.akar53411@gmail.com
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entrypoint: web
+
+http:
+  routers:
+    traefik:
+      service: api@internal
+      middlewares:
+        - user-auth
+      entryPoints:
+        - websecure
+      rule: Host(`traefik.nedim-akar.cloud`)
+      tls:
+        certResolver: letsencrypt
+    whoami:
+      rule: Host(`whoami.nedim-akar.cloud`)
+      entryPoints:
+        - websecure
+      service: whoami
+      tls:
+        certResolver: letsencrypt
+    jaeger:
+      rule: Host(`jaeger.nedim-akar.cloud`)
+      middlewares:
+        - user-auth
+      entryPoints:
+        - websecure
+      service: jaeger
+      tls:
+        certResolver: letsencrypt
+  middlewares:
+    user-auth:
+      basicAuth:
+        realm: "Login Required"
+        usersFile: "/shared/.htpasswd"

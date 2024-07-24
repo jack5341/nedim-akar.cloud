@@ -1,0 +1,7 @@
+# Set the default behavior for all files
+* text=auto
+
+# Specify specific file patterns and their attributes
+*.txt text
+*.jpg binary
+*.md text

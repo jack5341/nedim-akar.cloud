@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.9
+    command:
+      - "--configFile=./configs/traefik/traefik.yml"
+    labels:
+      - "traefik.enable=true"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+      - "./.htpasswd:/shared/.htpasswd:ro"
+    networks:
+      - web
+      - tracing
+
+  jaeger:
+    image: jaegertracing/all-in-one:1
+    ports:
+      - "4318:4318"
+    labels:
+      - "traefik.enable=true"
+    networks:
+      - tracing
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "whoami"
+    labels:
+      - "traefik.enable=true"
+    networks:
+      - web
+      
+networks:
+  web:
+    external: true
+  tracing:
+    external: true
+
+volumes:
+  letsencrypt:
