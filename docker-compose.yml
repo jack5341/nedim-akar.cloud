@@ -20,6 +20,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./configs/traefik/config.yml:/etc/traefik/config.yml
       - ./configs/traefik/dynamic.yml:/etc/traefik/dynamic.yml
+      - ./configs/traefik/acme.json:/etc/traefik/acme.json
       - ./.htpasswd:/shared/.htpasswd:ro
     secrets:
       - "cloudflare-token"
