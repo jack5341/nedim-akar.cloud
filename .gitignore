@@ -1,2 +1,5 @@
 .htpasswd
 .DS_Store
+.env
+cloudflare-email.secret
+cloudflare-token.secret

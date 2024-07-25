@@ -1,0 +1,49 @@
+api:
+  dashboard: true
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    httpClientTimeout: 300
+    exposedByDefault: false
+  file:
+    filename: /etc/traefik/dynamic.yml
+
+accessLog:
+  filePath: "/dev/stdout"
+  filters:
+    statusCodes:
+      - "200"
+      - "300-302"
+    retryAttempts: true
+
+log:
+  level: "ERROR"
+  format: json
+  filePath: "./traefik.log"
+
+entryPoints:
+  http:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
+  https:
+    address: ":443"
+    http:
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: nedim-akar.cloud
+            sans:
+              - '*.nedim-akar.cloud'
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: nedim.akar53411@gmail.com
+      storage: /etc/traefik/acme.json
+      dnsChallenge:
+        provider: cloudflare

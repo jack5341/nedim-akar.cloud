@@ -1,5 +1,11 @@
 version: '3.8'
 
+secrets:
+  cloudflare-token:
+    file: "./secrets/cloudflare-token.secret"
+  cloudflare-email:
+    file: "./secrets/cloudflare-email.secret"
+
 services:
   traefik:
     image: traefik:v2.9
@@ -7,13 +13,21 @@ services:
       - 443:443
       - 80:80
     command:
-      - "--configFile=./configs/traefik/traefik.yml"
+      - "--configFile=/etc/traefik/config.yml"
     labels:
       - "traefik.enable=true"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "letsencrypt:/letsencrypt"
-      - "./.htpasswd:/shared/.htpasswd:ro"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./configs/traefik/config.yml:/etc/traefik/config.yml
+      - ./configs/traefik/dynamic.yml:/etc/traefik/dynamic.yml
+      - ./certs:/letsencrypt
+      - ./.htpasswd:/shared/.htpasswd:ro
+    secrets:
+      - "cloudflare-token"
+      - "cloudflare-email"
+    environment:
+      - "CF_DNS_API_TOKEN_FILE=/run/secrets/cloudflare-token"
+      - "CF_API_EMAIL_FILE=/run/secrets/cloudflare-email"
     networks:
       - web
       - tracing
@@ -22,6 +36,7 @@ services:
     image: jaegertracing/all-in-one:1
     ports:
       - "4318:4318"
+      - "16686:16686"
     labels:
       - "traefik.enable=true"
     networks:
@@ -41,6 +56,3 @@ networks:
     external: true
   tracing:
     external: true
-
-volumes:
-  letsencrypt:

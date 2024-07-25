@@ -1,0 +1,38 @@
+http:
+  routers:
+    traefik:
+      rule: "Host(`dashboard.nedim-akar.cloud`)"
+      service: "api@internal"
+      entryPoints:
+        - "https"
+      tls:
+        certResolver: letsencrypt
+    whoami:
+      rule: "Host(`whoami.nedim-akar.cloud`)"
+      entryPoints:
+        - "https"
+      service: "whoami"
+      tls:
+        certResolver: letsencrypt
+    jaeger:
+      rule: "Host(`jaeger.nedim-akar.cloud`)"
+      middlewares:
+        - user-auth
+      entryPoints:
+        - "https"
+      service: "jaeger"
+      tls:
+        certResolver: letsencrypt
+  services:
+    whoami:
+      loadBalancer:
+        servers:
+          - url: "http://whoami:80"
+    jaeger:
+      loadBalancer:
+        servers:
+          - url: "http://jaeger:16686"
+  middlewares:
+    user-auth:
+      basicAuth:
+        usersFile: /shared/.htpasswd
