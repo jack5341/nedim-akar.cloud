@@ -3,3 +3,4 @@
 .env
 cloudflare-email.secret
 cloudflare-token.secret
+acme.json
